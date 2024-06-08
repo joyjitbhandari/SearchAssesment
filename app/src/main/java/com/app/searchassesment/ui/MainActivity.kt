@@ -41,27 +41,30 @@ class MainActivity : AppCompatActivity() {
 
         initObserver()
 
-        perFormSearch(pageCount.toString(), "abc")
+        perFormSearch(pageCount.toString(), "movie")
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
+                pageCount = 1
                 val inputMethodManager =
                     getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 inputMethodManager.hideSoftInputFromWindow(binding.searchView.windowToken, 0)
                 if (query!!.isNotEmpty()) {
-                    perFormSearch("1", query.toString())
+                    perFormSearch(pageCount.toString(), query.toString())
                 } else Toast.makeText(this@MainActivity, "Search is empty", Toast.LENGTH_SHORT)
                     .show()
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                pageCount = 1
                 if (newText!!.isNotEmpty() && newText.length >= 3) {
-                    perFormSearch("1", newText)
+                    perFormSearch(pageCount.toString(), newText)
                 }
                 return true
             }
         })
+        binding.searchView.requestFocus()
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -74,9 +77,10 @@ class MainActivity : AppCompatActivity() {
 
                 is NetworkResponse.Success -> {
                     binding.progressBar.visibility = android.view.View.GONE
-                    if (resultList.isNotEmpty()) {
+                    if (it.data?.Search?.isNotEmpty() == true) {
                         if (pageCount == 1) {
                             resultList.clear()
+                            resultList.addAll(it.data.Search)
                             binding.recyclerView.layoutManager = GridLayoutManager(this, 2)
                             binding.recyclerView.adapter = PaginationAdapter(resultList) {
                                 pageCount += 1
@@ -85,10 +89,12 @@ class MainActivity : AppCompatActivity() {
                                     binding.searchView.query.toString()
                                 )
                             }
+                        }else{
+                            resultList.addAll(it.data.Search)
+                            binding.recyclerView.adapter?.notifyDataSetChanged()
                         }
+
                     } else Toast.makeText(this, "No data found", Toast.LENGTH_SHORT).show()
-                    resultList.addAll(it.data?.Search!!)
-                    binding.recyclerView.adapter?.notifyDataSetChanged()
                 }
 
                 is NetworkResponse.Error -> {
