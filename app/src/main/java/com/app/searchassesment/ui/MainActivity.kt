@@ -21,7 +21,6 @@ import com.app.searchassesment.repository.Repository
 import com.app.searchassesment.utill.InternetConnection
 import com.app.searchassesment.viewModel.SearchViewModel
 import com.app.searchassesment.viewModel.factory.ViewModelFactory
-import com.bumptech.glide.util.Util
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -42,7 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         initObserver()
 
-        perFormSearch(pageCount.toString(),"abc")
+        perFormSearch(pageCount.toString(), "abc")
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -75,16 +74,19 @@ class MainActivity : AppCompatActivity() {
 
                 is NetworkResponse.Success -> {
                     binding.progressBar.visibility = android.view.View.GONE
-                    if(pageCount == 1 ){
-                        resultList.clear()
-                        if (resultList.isNotEmpty()) {
+                    if (resultList.isNotEmpty()) {
+                        if (pageCount == 1) {
+                            resultList.clear()
                             binding.recyclerView.layoutManager = GridLayoutManager(this, 2)
                             binding.recyclerView.adapter = PaginationAdapter(resultList) {
                                 pageCount += 1
-                                perFormSearch(pageCount.toString(), binding.searchView.query.toString())
+                                perFormSearch(
+                                    pageCount.toString(),
+                                    binding.searchView.query.toString()
+                                )
                             }
-                        } else Toast.makeText(this, "No data found", Toast.LENGTH_SHORT).show()
-                    }
+                        }
+                    } else Toast.makeText(this, "No data found", Toast.LENGTH_SHORT).show()
                     resultList.addAll(it.data?.Search!!)
                     binding.recyclerView.adapter?.notifyDataSetChanged()
                 }
@@ -101,7 +103,8 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             if (InternetConnection.isNetworkAvailable(this@MainActivity)) {
                 viewModel.getSearchData(page, search)
-            }else Toast.makeText(this@MainActivity, "No internet connection", Toast.LENGTH_SHORT).show()
+            } else Toast.makeText(this@MainActivity, "No internet connection", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 }
